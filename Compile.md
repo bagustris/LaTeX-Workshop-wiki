@@ -12,6 +12,7 @@ The following settings are helpful to customize how to build a project and how t
 
 | Setting key                                               | Description                                                                                           | Default  | Type                 |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------- | -------------------- |
+| [`latex-workshop.latex.jobname`](#latex-workshoplatexjobname) | 
 | [`latex-workshop.latex.autoBuild.run`](#auto-build-latex) | When the extension shall auto build LaTeX project using [the default (first) recipe](#latex-recipes). | `onFileChange` | _string_             |
 | [`latex-workshop.latex.recipes`](#latex-recipes)          | Sequence of tools to run for building                                                                 |          | _JSON object_        |
 | [`latex-workshop.latex.tools`](#latex-recipes)            | Tools available for building                                                                          |          | _JSON object_        |
@@ -27,7 +28,17 @@ It is possible to terminate the current compilation by calling `Kill LaTeX compi
 
 Besides manually calling the `Build LaTeX Project` command to compile a document, you may also let the extension automatically start compiling it upon file change. This can be defined in `latex-workshop.latex.autoBuild.run`. The recipe called by auto build is defined by [`latex-workshop.latex.recipe.default`](#latex-workshoplatexrecipedefault).
 
-### latex-workshop.latex.autoBuild.run
+###`latex-workshop.latex.jobname`
+
+The jobname argument of the compiling tool, which is used by the extension to find project files (e.g., PDF and SyncTeX files).
+
+|   type   |  default value   |
+| -------- | ---------------- |
+| _string_ | `""`             |
+
+This config should be set identical to the value provided to the `-jobname=` argument, and should not have placeholders. Leave the config empty to ignore jobname and keep the default behavior.
+
+###`latex-workshop.latex.autoBuild.run`
 
 When to trigger automatic building.
 
@@ -37,9 +48,9 @@ When to trigger automatic building.
 
 - `"never"`: Disable the auto build feature
 - `"onSave"`: Build the project upon saving a `.tex` file.
-- `"onFileChange"`: Build the project upon detecting a file change in any of the dependencies. The file can even be modified outside vscode. See [here](#multi-file-projects) for explanations on what dependencies are and how some of them can be ignored. See the [FAQ](FAQ#I-use-build-on-save-but-I-occasionally-want-to-save-without-building) for how to save without triggering the build when this feature is on. When a file changes, we wait for a delay before triggering the build. This delay is configured by [`latex-workshop.latex.watch.delay`](#latex-workshoplatexwatchdelay)
+- `"onFileChange"`: Build the project upon detecting a file change in any of the dependencies. The file can even be modified outside vscode. See [here](#multi-file-projects) for explanations on what dependencies are and how some of them can be ignored. See the [FAQ](FAQ#I-use-build-on-save-but-I-occasionally-want-to-save-without-building) for how to save without triggering the build when this feature is on.
 
-### latex-workshop.latex.autoBuild.interval
+###`latex-workshop.latex.autoBuild.interval`
 
 The minimal time interval between two consecutive auto builds in milliseconds.
 
@@ -47,7 +58,7 @@ The minimal time interval between two consecutive auto builds in milliseconds.
 | --------- | ---------------- |
 | _integer_ | `1000`           |
 
-### latex-workshop.latex.watch.files.ignore
+###`latex-workshop.latex.watch.files.ignore`
 
 Files to be ignored from the watching mechanism used for triggering autobuild.
 
@@ -59,42 +70,10 @@ With the default value, we do not watch files inside the `texmf` tree of the LaT
 | -------------------- | -------------- |
 | _array_ of _strings_ | `["**/*.bbx", "**/*.cbx", "**/*.cfg", "**/*.clo", "**/*.cnf", "**/*.def", "**/*.fmt", "**/*.lbx", "**/*.map", "**/*.pfb", "**/*.tfm", "**/texmf-{dist,var}/**", "C:/**texmf/**", "/usr/local/share/miktex-texmf/**", "/Library/Application Support/MiKTeX/texmfs/**"]` |
 
-### latex-workshop.latex.watch.usePolling
-
-Use polling to watch changes on files.
-
-When TeX files are placed on network drives or OneDrive, this option should be turned on. Setting this option to true might lead to high CPU utilization.
-
-Reload vscode to make any change in this configuration effective.
-
-| type                 | default value |
-| -------------------- | ------------- |
-| _boolean_            | `false`       |
-
-### latex-workshop.latex.watch.interval
-
-Interval of polling, in milliseconds.
-
-Reload vscode to make any change in this configuration effective.
-
-| type               | default value |
-| ------------------ | ------------- |
-| _number_           | `300`         |
-
-### latex-workshop.latex.watch.delay
-
-Delay before starting builds, in milliseconds.
-
-You must reload VSCode to take into account a change in this configuration.
-
-| type               | default value |
-| ------------------ | ------------- |
-| _number_           | `250`         |
-
 
 ## LaTeX recipes
 
-A LaTeX recipe refers to a sequence/array of commands which LaTeX Workshop executes sequentially when building LaTeX projects. It is defined by `latex-workshop.latex.recipes`. By default, LaTeX Workshop includes two basic recipes defined by the variables `latex-workshop.latex.recipes` and `latex-workshop.latex.tools`:
+A LaTeX recipe refers to a sequence/array of commands which LaTeX Workshop executes sequentially when building LaTeX projects. It is defined by `latex-workshop.latex.recipes`. By default, LaTeX Workshop includes several basic recipes defined by the variables `latex-workshop.latex.recipes` and `latex-workshop.latex.tools`. Below are two popular examples:
 
 - The first one simply relies on the `latexmk` command
 - The second one run the following sequence of commands `pdflatex` → `bibtex` → `pdflatex` → `pdflatex`.
@@ -102,13 +81,13 @@ A LaTeX recipe refers to a sequence/array of commands which LaTeX Workshop execu
 ```json
 "latex-workshop.latex.recipes": [
   {
-    "name": "latexmk 🔃",
+    "name": "latexmk",
     "tools": [
       "latexmk"
     ]
   },
   {
-    "name": "pdflatex ➞ bibtex ➞ pdflatex × 2",
+    "name": "pdflatex -> bibtex -> pdflatex * 2",
     "tools": [
       "pdflatex",
       "bibtex",
@@ -120,6 +99,8 @@ A LaTeX recipe refers to a sequence/array of commands which LaTeX Workshop execu
 ```
 
 When building the project, the first recipe is used by default. See the [setting](#latex-workshoplatexrecipedefault). You can compile with another recipe by command `latex-workshop.recipes`. By default [`latexmk`](https://personal.psu.edu/jcc8/software/latexmk/) is used. This tool is bundled in most LaTeX distributions, and requires perl to execute.
+
+If you want to preset a per-file recipe, you may also consider place the LaTeX Workshop-specific derivative `%!LW recipe=recipe-name` at the top of your root file, similar to the wider recognized `%!TeX root=root-file` magic comment.
 
 ### LaTeX tools
 
@@ -190,7 +171,7 @@ LaTeX Workshop registers the following placeholders
 | `%DOCFILE_EXT%` | The root file name with the extension |
 | `%DIR%`         | The root file directory |
 | `%DIR_W32%`     | The root file directory with `\` path separator on Windows |
-| `%TMPDIR%`      | A temporary folder for storing ancillary files |
+| `%TMPDIR%`      | A temporary folder for storing auxilary files |
 | `%OUTDIR%`      | The output directory configured in [`latex-workshop.latex.outDir`](View#latex-workshoplatexoutDir) |
 | `%OUTDIR_W32%`  | The output directory configured in [`latex-workshop.latex.outDir`](View#latex-workshoplatexoutDir) with `\` path separator on Windows |
 | `%WORKSPACE_FOLDER%`  | The current workspace path |
@@ -226,7 +207,7 @@ For non-perl users, the following `texify` toolchain from MikTeX may worth a try
 }]
 ```
 
-### latex-workshop.latex.recipe.default
+###`latex-workshop.latex.recipe.default`
 
 Define which recipe is used by the _Build LaTeX project_ command.
 It also applies to auto build. Recipes are refered to by their names as defined in `latex-workshop.latex.recipes`. Note there are two special values:
@@ -238,7 +219,7 @@ It also applies to auto build. Recipes are refered to by their names as defined 
 | -------- | ------------- |
 | _string_ | `"first"`     |
 
-### latex-workshop.latex.build.forceRecipeUsage
+###`latex-workshop.latex.build.forceRecipeUsage`
 
 Force the use of the recipe system even when a magic comment defines a TeX command.
 
@@ -248,16 +229,16 @@ Force the use of the recipe system even when a magic comment defines a TeX comma
 
 ## Multi File projects
 
-While it is fine to write all contents in one `.tex` file, it is common to split things up for simplicity. For such LaTeX projects, the file with `\begin{document}` is considered as the root file, which serves as the entry point to the project. LaTeX Workshop intelligently finds the root file when a new document is opened, the active editor is changed, or any LaTeX Workshop command is executed.
+While it is fine to write all contents in one `.tex` file, it is common to split things up for simplicity. For such LaTeX projects, the file with `\documentclass[]{}` is considered as the root file, which serves as the entry point to the project. LaTeX Workshop intelligently finds the root file when a new document is opened, the active editor is changed, or any LaTeX Workshop command is executed.
 
 ### The root file
 
 To find the root file, LaTeX Workshop will follow the steps below, stopping whenever one is found:
 
-1. **Magic comment** `% !TEX root = relative/or/absolute/path/to/root/file.tex`. If such comments exist in the currently active editor, the referred file is set as root. You can use the command `latex-workshop.addtexroot` to help you insert the magic comment.
-1. **Self check** If current active editor contains `\begin{document}`, it is set as root.
-1. **Root directory check** LaTeX Workshop iterates through all `.tex` files in the root folder of the workspace. The first one containing `\begin{document}` and which includes the file in the active editor is set as the root file. To avoid parsing all `.tex` files in the workspace, you can narrow the search by specifying [`latex-workshop.latex.search.rootFiles.include`](#latex-workshoplatexsearchrootFilesinclude) and/or [`latex-workshop.latex.search.rootFiles.exclude`](#latex-workshoplatexsearchrootFilesexclude).
-1. **The `subfiles` package case** The main file is used to provide intellisense. The non-interactive functions `autobuild`, `autoclean` and forward `synctex` rely on the value of the configuration variable [`latex-workshop.latex.rootFile.useSubFile`](#latex-workshoplatexrootFileuseSubFile) to choose between the main file and the subfile.
+1. **Magic comment** `% !TEX root = relative/or/absolute/path/to/root/file.tex`. If such comments exist in the currently active editor, the referred file is set as root. You can use the command `latex-workshop.addtexroot` to help you insert the magic comment. Note that magic comments need you to set [`latex-workshop.latex.build.forceRecipeUsage`](#latex-workshoplatexbuildforcerecipeusage) to `false`. The default `true` disables magic comments.
+1. **Self check** If current active editor contains `\documentclass[...]{...}` (the `[...]` is optional), it is set as root.
+1. **Root directory check** LaTeX Workshop iterates through all `.tex` files in the root folder of the workspace. The first one containing `\documentclass[...]{...}` (the `[...]` is optional) and which includes the file in the active editor is set as the root file. To avoid parsing all `.tex` files in the workspace, you can narrow the search by specifying [`latex-workshop.latex.search.rootFiles.include`](#latex-workshoplatexsearchrootfilesinclude) and/or [`latex-workshop.latex.search.rootFiles.exclude`](#latex-workshoplatexsearchrootfilesexclude).
+1. **The `subfiles` package case** The main file is used to provide intellisense. The non-interactive functions `autobuild`, `autoclean` and forward `synctex` rely on the value of the configuration variable [`latex-workshop.latex.rootFile.useSubFile`](#latex-workshoplatexrootfileusesubfile) to choose between the main file and the subfile.
     - if [`latex-workshop.latex.rootFile.doNotPrompt`](#latex-workshoplatexrootFiledoNotPrompt) is `false`,  all the interactive commands `build`, `clean` and `view` use a quick pick box to ask the user which file is to be considered as the root File.
     - if [`latex-workshop.latex.rootFile.doNotPrompt`](#latex-workshoplatexrootFiledoNotPrompt) is `true`,  all the interactive commands `build`, `clean` and `view` use variable [`latex-workshop.latex.rootFile.useSubFile`](#latex-workshoplatexrootFileuseSubFile) to choose between the main file and the subfile automatically.
 
@@ -277,7 +258,7 @@ Moreover, when a `.fls` file with the same basename as the root file exists, it 
 
 ### Relevant settings
 
-#### latex-workshop.latex.search.rootFiles.include
+####`latex-workshop.latex.search.rootFiles.include`
 
 Patterns of files to consider for the root detection mechanism.
 
@@ -287,7 +268,7 @@ Relative paths are computed from the workspace folder. To detect the root file a
 | -------------------- | -------------- |
 | _array_ of _strings_ | `["**/*.tex"]` |
 
-#### latex-workshop.latex.search.rootFiles.exclude
+####`latex-workshop.latex.search.rootFiles.exclude`
 
 Patterns of files to exclude from the root detection mechanism.
 
@@ -297,7 +278,7 @@ See also `latex-workshop.latex.search.rootFiles.include`. For more details on gl
 | -------------------- | ------------- |
 | _array_ of _strings_ | `[]`          |
 
-#### latex-workshop.latex.texDirs
+####`latex-workshop.latex.texDirs`
 
 List of directories where to look for extra input `.tex` files.
 
@@ -307,23 +288,23 @@ Absolute paths are required. You may also need to set the environment variable `
 | -------------------- | ------------- |
 | _array_ of _strings_ | `[]`          |
 
-#### latex-workshop.latex.rootFile.useSubFile
+####`latex-workshop.latex.rootFile.useSubFile`
 
-When the `subfiles` package is used, either the main file or any subfile containing `\\documentclass[main.tex]{subfiles}` can be LaTeXing. When set to `true`, the extension uses the subfile as the rootFile for the `autobuild`, `clean` and `synctex` commands.
+When the `subfiles` package is used, either the main file or any subfile containing `\documentclass[main.tex]{subfiles}` can be LaTeXing. When set to `true`, the extension uses the subfile as the rootFile for the `autobuild`, `clean` and `synctex` commands.
 
 | type                 | default value |
 | -------------------- | ------------- |
 | _boolean_            | `true`        |
 
-#### latex-workshop.latex.rootFile.doNotPrompt
+####`latex-workshop.latex.rootFile.doNotPrompt`
 
-When the `subfiles` package is used, either the main file or any subfile containing `\\documentclass[main.tex]{subfiles}` can be LaTeXing. When set to `false`, the `build` and `view` commands  ask the user's choice first. When set to `true`, the subfile is used when `latex-workshop.latex.rootFile.useSubFile` is also `true`, otherwise the rootFile is used.
+When the `subfiles` package is used, either the main file or any subfile containing `\documentclass[main.tex]{subfiles}` can be LaTeXing. When set to `false`, the `build` and `view` commands  ask the user's choice first. When set to `true`, the subfile is used when `latex-workshop.latex.rootFile.useSubFile` is also `true`, otherwise the rootFile is used.
 
 | type                 | default value |
 | -------------------- | ------------- |
 | _boolean_            | `false`       |
 
-### latex-workshop.latex.verbatimEnvs
+###`latex-workshop.latex.verbatimEnvs`
 
 List environments with verbatim-like content.
 
@@ -337,7 +318,7 @@ These environments are stripped off the `.tex` files before any parsing occurs. 
 
 The warnings and errors issued by the compiling toolchain are rendered in the _Problems_ Pane. The following settings enable you to customize what you want to get in that panel. If the messages displayed in the panel seem to be wrong, see the [FAQ](FAQ#The-Problem-Pane-displays-wrong-messages).
 
-You have to call LaTeX compilers with an option `-file-line-error` in your [recipes](#latex-recipes).
+You have to call LaTeX compilers with an option `-file-line-error` in your [recipes](#latex-recipes). `--max-print-line=10000` is another option that you may consider adding to your tool when applicable.
 
 Notice that problems are not displayed when you compile a LaTeX document in draft mode. See an [issue](https://github.com/James-Yu/LaTeX-Workshop/issues/2893#issuecomment-936312853).
 
@@ -345,7 +326,7 @@ The raw compiler logs can be accessed in the _Output Pane_, choose _LaTeX Compil
 
 ## Settings Details
 
-### latex-workshop.message.log.show
+###`latex-workshop.message.log.show`
 
 Display LaTeX Workshop debug log in output panel.
 
@@ -355,7 +336,7 @@ This property defines whether LaTeX Workshop will output its debug log to the lo
 | --------- | ------------- |
 | _boolean_ | `true`        |
 
-### latex-workshop.message.badbox.show
+###`latex-workshop.message.badbox.show`
 
 Show badbox information in the problems panel.
 
@@ -363,7 +344,15 @@ Show badbox information in the problems panel.
 | --------- | ------------- |
 | _boolean_ | `true`        |
 
-### latex-workshop.message.bibtexlog.exclude
+###`latex-workshop.message.biberlog.exclude`
+
+Exclude biber log messages matching the given regexp from the problems panel.
+
+| type                 | default value |
+| -------------------- | ------------- |
+| _array_ of _strings_ | `[]`          |
+
+###`latex-workshop.message.bibtexlog.exclude`
 
 Exclude bibtex log messages matching the given regexp from the problems panel.
 
@@ -371,7 +360,7 @@ Exclude bibtex log messages matching the given regexp from the problems panel.
 | -------------------- | ------------- |
 | _array_ of _strings_ | `[]`          |
 
-### latex-workshop.message.latexlog.exclude
+###`latex-workshop.message.latexlog.exclude`
 
 Exclude latex log messages matching the given regexp from the problems panel.
 
@@ -379,7 +368,7 @@ Exclude latex log messages matching the given regexp from the problems panel.
 | -------------------- | ------------- |
 | _array_ of _strings_ | `[]`          |
 
-### latex-workshop.message.information.show
+###`latex-workshop.message.information.show`
 
 Display information messages in popup notifications.
 
@@ -387,7 +376,7 @@ Display information messages in popup notifications.
 | --------- | ------------- |
 | _boolean_ | `false`       |
 
-### latex-workshop.message.warning.show
+###`latex-workshop.message.warning.show`
 
 Display warning messages in popup notifications.
 
@@ -395,7 +384,7 @@ Display warning messages in popup notifications.
 | --------- | ------------- |
 | _boolean_ | `true`        |
 
-### latex-workshop.message.error.show
+###`latex-workshop.message.error.show`
 
 Display error messages in popup notifications.
 
@@ -403,7 +392,7 @@ Display error messages in popup notifications.
 | --------- | ------------- |
 | _boolean_ | `true`        |
 
-### latex-workshop.latex.build.clearLog.everyRecipeStep.enabled
+###`latex-workshop.latex.build.clearLog.everyRecipeStep.enabled`
 
 Clear the LaTeX Compiler logs before every step of a recipe.
 
@@ -427,7 +416,7 @@ LaTeX compilation typically generates several auxiliary files. They can be remov
 | [`latex-workshop.latex.clean.fileTypes`](#latex-workshoplatexcleanfileTypes) | Extensions of files to clean |     | _array of strings_ |
 | [`latex-workshop.latex.clean.subfolder.enabled`](#latex-workshoplatexcleansubfolderenabled) | Clean LaTeX auxillary files recursively in sub-folders of [`latex-workshop.latex.outDir`](View#latex-workshoplatexoutDir) | `false`   | _boolean_ |
 
-### latex-workshop.latex.autoClean.run
+###`latex-workshop.latex.autoClean.run`
 
 | type     | default value | possible values                     |
 | -------- | ------------- | ----------------------------------- |
@@ -437,7 +426,7 @@ LaTeX compilation typically generates several auxiliary files. They can be remov
 - `"onFailed"`: Clean the project upon failed compilation.
 - `"onBuilt"`: Clean the project upon completing a compilation, whether it is successful or not.
 
-### latex-workshop.latex.autoBuild.cleanAndRetry.enabled
+###`latex-workshop.latex.autoBuild.cleanAndRetry.enabled`
 
 Delete LaTeX auxiliary files when errors occur during build and retry.
 
@@ -447,7 +436,7 @@ This property defines whether LaTeX Workshop will try to clean and build the pro
 | --------- | ------------- |
 | _boolean_ | `true`        |
 
-### latex-workshop.latex.clean.subfolder.enabled
+###`latex-workshop.latex.clean.subfolder.enabled`
 
 Delete LaTeX auxiliary files recursively in sub-folders of [`latex-workshop.latex.outDir`](View#latex-workshoplatexoutDir).
 
@@ -455,7 +444,7 @@ Delete LaTeX auxiliary files recursively in sub-folders of [`latex-workshop.late
 | --------- | ------------- |
 | _boolean_ | `false`        |
 
-### latex-workshop.latex.clean.fileTypes
+###`latex-workshop.latex.clean.fileTypes`
 
 Files to be cleaned.
 
@@ -468,7 +457,7 @@ Users can also specify glob patterns like `emptyfolder*/` to remove empty folder
 | _array_ of _strings_ | `[ "*.aux", "*.bbl", "*.blg", "*.idx", "*.ind", "*.lof", "*.lot", "*.out", "*.toc", "*.acn", "*.acr", "*.alg", "*.glg", "*.glo", "*.gls", "*.fls", "*.log", "*.fdb_latexmk", "*.snm", "*.synctex(busy)", "*.synctex.gz(busy)", "*.nav" ]` |
 
 
-### latex-workshop.latex.clean.command
+###`latex-workshop.latex.clean.command`
 
 The command to be used to remove temporary files when [`latex-workshop.latex.clean.method`](#latex-workshoplatexcleanmethod) is set to `cleanMethod`.
 
@@ -476,7 +465,7 @@ The command to be used to remove temporary files when [`latex-workshop.latex.cle
 | -------- | ------------- |
 | _string_ | `latexmk`     |
 
-### latex-workshop.latex.clean.args
+###`latex-workshop.latex.clean.args`
 
 The arguments of [`latex-workshop.latex.clean.command`](#latex-workshoplatexcleancommand). The `%TEX%` placeholder is the full path of the tex file from which the clean command is called.
 
@@ -484,7 +473,7 @@ The arguments of [`latex-workshop.latex.clean.command`](#latex-workshoplatexclea
 |----------------------|-------------------|
 | _array_ of _strings_ | `["-c", "%TEX%"]` |
 
-### latex-workshop.latex.clean.method
+###`latex-workshop.latex.clean.method`
 
 Define the method used by the `clean` command to remove temporary files.
 
@@ -499,7 +488,7 @@ Define the method used by the `clean` command to remove temporary files.
 
 Versatile though the recipe mechanism described above may be, it may fail to match your needs when building the whole LaTeX project is done by a personal script or a Makefile. For this particular case, we provide an external build command mechanism, which completely bypasses the recipe machinery. Just define your command along with its arguments using the following two configuration variables
 
-### latex-workshop.latex.external.build.command
+###`latex-workshop.latex.external.build.command`
 
 The external command to execute when calling `latex-workshop.build`.
 
@@ -509,7 +498,7 @@ This is useful when compiling relies on a Makefile or a bespoke script. When def
 | --------- | ---------------- |
 | _string_  | `""`             |
 
-### latex-workshop.latex.external.build.args
+###`latex-workshop.latex.external.build.args`
 
 The arguments of [`latex-workshop.latex.external.build.command`](#latex-workshoplatexexternalbuildcommand) when calling `latex-workshop.build`
 

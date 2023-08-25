@@ -19,8 +19,9 @@ In any case, you can use the shortcut <kbd>ctrl</kbd>+<kbd>l</kbd>, <kbd>ctrl</k
 
 ## Navigating and selecting
 
-- To navigate from `\begin/\end` to the corresponding `\end/\begin`, while on the `begin` or `end` keywords, call _LaTeX Workshop: Navigate to matching begin/end_ from the _Command Palette_ (command `latex-workshop.navigate-envpair`).
-- To select the full content of an environment, including the opening and closing statements, call _LaTeX Workshop: Select the current environment content_ from the _Command Palette_ (command `latex-workshop.select-envcontent`). This function considers blocks surrounded by `\[...\]` and `\(...\)` as environments. Repeated calls result in selecting the outer environments.
+- To navigate from `\begin/\end` to the corresponding `\end/\begin`, while on the `begin` or `end` keywords, call _LaTeX Workshop: Navigate to matching begin/end_ from the _Command Palette_ (command `latex-workshop.navigate-envpair`). This function considers blocks surrounded by `\[...\]`, `$$...$$`, `\(...\)` or `$...$` as environments.
+- To select the inner content of an environment, excluding the opening and closing statements, call _LaTeX Workshop: Select the current environment content_ from the _Command Palette_ (command `latex-workshop.select-envcontent`). This function considers blocks surrounded by `\[...\]`, `$$...$$`, `\(...\)` or `$...$` as environments. Repeated calls result in selecting the outer environments.
+- To select the whole environment, including the opening and closing statements, call _LaTeX Workshop: Select the current environment_ from the _Command Palette_ (command `latex-workshop.select-env`). This function considers blocks surrounded by `\[...\]`, `$$...$$`, `\(...\)` or `$...$` as environments. Repeated calls result in selecting the outer environments.
 - To select the current environment name, call _LaTeX Workshop: Select the current environment name_ from the _Command Palette_ (command `latex-workshop.select-envname`). For this command to work, the cursor must be strictly between `\begin{...}` and `\end{...}`. If the current environment is `\[...\]`, this function will automatically convert it into `\begin{equation*}...\end{equation*}`. Repeated calls result in selecting the outer environments. **Note**: this function _does not_ work with the [Vim](https://github.com/VSCodeVim/Vim) extension.
 - To add a multi-cursor to the current environment name, call _LaTeX Workshop: Add a multi-cursor to the current environment name_ from the _Command Palette_ (command `latex-workshop.multicursor-envname`). If the current environment is `\[...\]`, this function will automatically convert it into `\begin{}...\end{}`. For this command to work, the cursor must be strictly between `\begin{...}` and `\end{...}`. Repeated calls result in selecting the outer environments.
 
@@ -47,7 +48,7 @@ Alternatively, you can select the text and insert the environment using either t
 
 <img src="https://github.com/James-Yu/LaTeX-Workshop/raw/master/demo_media/surround-beginend.gif" alt="Surround with environment demo">
 
-### latex-workshop.bind.enter.key
+###`latex-workshop.bind.enter.key`
 
 
 Enable the automatic insertion of `\item` on a newline when pressing `Enter` in a line starting in `\item`.
@@ -56,7 +57,7 @@ Enable the automatic insertion of `\item` on a newline when pressing `Enter` in 
 | --------- | ------------- |
 | _boolean_ | `true`        |
 
-### latex-workshop.selection.smart.latex.enabled
+###`latex-workshop.selection.smart.latex.enabled`
 
 Enable AST based smart selection. Command ids are `editor.action.smartSelect.expand` and `editor.action.smartSelect.shrink`.
 
